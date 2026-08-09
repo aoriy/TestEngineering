@@ -1,0 +1,25 @@
+[project]
+name = "testengineering"
+version = "0.1.0"
+description = "Python test-automation project"
+requires-python = ">=3.12"
+dependencies = [
+    "pytest",
+    "pytest-html",
+    "allure-pytest",
+    "requests",
+    "python-dotenv",
+    "loguru",
+    "openpyxl",
+    "PyYAML>=5.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+    "mypy",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
