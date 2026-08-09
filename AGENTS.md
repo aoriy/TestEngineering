@@ -14,7 +14,8 @@ Guidance for OpenCode agents working in this repository.
 
 ## Workflow
 
-- Version control: git, default branch `main`.
+- Version control: git, default branch `main`. Remote `origin` tracked; **remote pushes are handled by the user** — agents commit to local only, do not run `git push`.
+- **Commit every significant change** — after each major feature, refactor, or fix, stage and commit with a clear message. Do not let uncommitted work accumulate across unrelated changes.
 - Line endings are not normalized (no `.gitattributes`); expect CRLF warnings on Windows — harmless, but prefer LF when editing.
 - Tests are managed by pytest with `testpaths = ["tests"]` (configured in `pyproject.toml`). The `tests/` directory does not exist yet — create it when adding the first test.
 
