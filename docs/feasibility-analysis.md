@@ -240,3 +240,19 @@ Katalon 免费版 + 录制 + **AI 自愈**（页面变了自动修 XPath）已�
 4. **简图自动生成**：区域吸附为主（Playwright 真实坐标缩放），时间序兜底，不用 AI 布局
 5. **接口用例形态**：数据流走画布 + 顺序走列表，共享 ApiDefinition
 6. **报告**：MVP 用 pytest-html，Allure 可选开关
+
+---
+
+## 十、第三轮架构评审与修订（健壮性/扩展性补强）
+
+经第三轮架构评审（合理性/健壮性/扩展性三维检视），修正 9 个问题并定稿，详见 `architecture-review.md`。要点：
+
+1. **执行层独立 worker 子进程**：FastAPI 只编排，pytest/Playwright/Locust 一律子进程；`Executor` 抽象 + api/ui/perf 三实现 + subprocess runner，接口预留 Redis+RQ 分布式升级
+2. **数据模型补全**：新增 `Project` 顶层 + `Environment`（多环境刚需）；厘清 `FlowNode`(实例) vs `PageTemplate`(模板) 关系；新增 `Step`(引用 Shape + order) 落地"列表为执行源 + 简图可重排"
+3. **exec 用户代码护栏**：AST 白名单（禁 os/subprocess/open 等）+ subprocess 隔离 + 受控 ctx（仅暴露 get_var/set_var/log/call_api/sleep/fail）+ 单步超时 60s
+4. **健壮性补强**：Locust 子进程隔离、Playwright 并发上限、自愈 `locator_history` 版本化可回滚
+5. **扩展性插件化**：Executor / ShapeType / Reporter 三处用注册表模式，新增类型只加实现
+6. **变量渲染根除注入**：去掉 Jinja2 全语法，改简化 `{{var}}` 正则替换引擎；Jinja2 仅用于受控代码生成模板
+7. **落盘可追溯**：`runs/<run_id>/` 隔离，gitignored，DB 存路径
+
+5 个取舍点全部按推荐路线决定：subprocess 优先 / AST 白名单 / 简化替换引擎 / 保留 Module / runs\<run_id\>。**架构可开工**。

@@ -19,6 +19,14 @@ Guidance for OpenCode agents working in this repository.
 - Line endings are not normalized (no `.gitattributes`); expect CRLF warnings on Windows — harmless, but prefer LF when editing.
 - Tests are managed by pytest with `testpaths = ["tests"]` (configured in `pyproject.toml`). The `tests/` directory does not exist yet — create it when adding the first test.
 
+## Architecture (see docs/architecture-review.md for full design)
+
+- **Execution isolation iron law**: pytest / Playwright / Locust run in **worker subprocesses**, NEVER in the FastAPI process. FastAPI only orchestrates. Use `app/services/executor/` abstraction.
+- **Code hooks safety**: user Python in shapes runs behind AST import whitelist + subprocess + controlled `ctx` (only `get_var/set_var/log/call_api/sleep/fail`). No `os`/`subprocess`/`open`.
+- **Variables**: use the simple `{{var}}` regex substitution engine, NOT Jinja2 full syntax (injection-proof). Jinja2 is for code-gen templates only.
+- **Generated code & run artifacts** go to `runs/<run_id>/` (gitignored); DB stores paths.
+- **Plugins via registry**: `Executor` / `ShapeType` / `Reporter` are registry-based — add implementations, don't edit core.
+
 ## Commands
 
 | Task | Command |

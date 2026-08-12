@@ -181,83 +181,119 @@ LLM 自愈真正的风险不是成本，是**"看着对但语义错"**——找�
 
 ### 6.1 总体架构
 
+> 架构评审后修订：见 [architecture-review.md](./architecture-review.md) 第三、四、五、六章
+
 ```
-┌─────────────────────────────────────────────────┐
-│  Frontend: Vue3 + Vite + Element Plus           │
-│  页面简图画布(AntV X6)  流转图编辑器(AntV X6)    │
-│  需求/用例/执行/报告/性能/AI设置 页面             │
-│  代码钩子编辑(Monaco Editor)                    │
-└──────────────┬──────────────────────────────────┘
-               │ REST API
-┌──────────────▼──────────────────────────────────┐
-│  Backend: FastAPI + SQLAlchemy + SQLite         │
-│  数据模型 / 用例管理 / 页面&流转图 / 代码生成器    │
-│  执行引擎 / 报告 / AI自愈适配器 / Locust 编排     │
-└──────────────┬──────────────────────────────────┘
-               │ 生成代码 + 运行
-┌──────────────▼──────────────────────────────────┐
-│  Execution: pytest + requests(API)              │
-│             pytest + Playwright(UI, POM)        │
-│             locust(性能)                        │
-│             openai兼容协议 → DeepSeek(自愈)      │
-└─────────────────────────────────────────────────┘
+┌─ Frontend: Vue3 + X6 画布 + Monaco ─┐
+└──────────────┬───────────────────────┘
+               │ REST (轮询)
+┌──────────────▼───────────────────────┐
+│ Backend: FastAPI (编排层，不跑测试)   │
+│  services/: codegen/executor/selfheal │
+│  executor/: base/api/ui/perf + runner │
+└──────────────┬───────────────────────┘
+               │ subprocess.spawn
+┌──────────────▼───────────────────────┐
+│ Worker 子进程 (隔离执行)              │
+│  pytest+requests / pytest+Playwright │
+│  locust --headless / exec 钩子(AST)   │
+│  → DeepSeek 自愈                      │
+└──────────────────────────────────────┘
+DB: Project→Module→PageTemplate→Shape
+    Environment / Flow→FlowNode→Step
+    TestRun / SelfHealRecord
+生成代码: runs/<run_id>/ (gitignored)
 ```
+
+**铁律**：pytest/Playwright/Locust 一律子进程，绝不在 FastAPI 进程内跑。
 
 ### 6.2 技术栈
 
-| 层 | 选型 |
-|----|------|
-| 后端 | FastAPI + SQLAlchemy + SQLite（预留 MySQL） |
-| 前端 | Vue3 + Vite + Element Plus + **AntV X6**（画布）+ **Monaco Editor**（代码钩子） |
-| 变量模板 | Jinja2（`{{var}}` 天然支持） |
-| 响应提取 | jsonpath-ng |
-| UI 执行 | Playwright（跨浏览器、慢动作调试、录制） |
-| API 执行 | requests / httpx |
-| 性能 | Locust（Python 原生，复用接口定义，分布式压测） |
-| 代码生成 | Jinja2 模板（pytest + conftest） |
-| AI | OpenAI 兼容协议适配器，默认 DeepSeek，`chat/completions` 新版 client |
+| 层 | 选型 | 备注 |
+|----|------|------|
+| 后端 | FastAPI + SQLAlchemy + SQLite（预留 MySQL） | — |
+| 前端 | Vue3 + Vite + Element Plus + **AntV X6**（画布）+ **Monaco Editor**（代码钩子） | — |
+| 变量模板 | **简化 `{{var}}` 正则替换引擎** | 修订：去掉 Jinja2 全语法，根除注入；Jinja2 仅用于受控的代码生成模板 |
+| 响应提取 | jsonpath-ng | — |
+| UI 执行 | Playwright（子进程） | — |
+| API 执行 | requests / httpx（子进程） | — |
+| 性能 | Locust（`--headless` 子进程 + Stats API） | 子进程隔离，绝不 in-process |
+| 代码生成 | Jinja2 模板（受控，非用户变量） | `app/templates/pytest/*.j2` |
+| AI | OpenAI 兼容协议适配器，DeepSeek v4-pro + thinking | — |
+| **执行隔离** | **subprocess + Executor 抽象** | FastAPI 不跑测试，一律子进程；Executor 接口预留 Redis+RQ |
+| **代码钩子护栏** | **AST 白名单 + subprocess + 受控 ctx** | 单步超时 60s |
 
 ### 6.3 代码组织
 
 ```
 TestEngineering/
-├── pyproject.toml        # 后端 + 执行引擎 (uv 管理，新增依赖)
+├── pyproject.toml        # 后端 + 执行引擎 (uv 管理)
 ├── app/                  # FastAPI 应用
-│   ├── models/  schemas/  routers/  services/  (codegen, executor, selfheal)
-│   ├── templates/        # pytest/locust Jinja2 模板
-│   └── generated/        # 生成代码 (gitignore)
-├── frontend/             # Vue3 + Vite + AntV X6 (npm 管理)
+│   ├── models/           # SQLAlchemy 实体
+│   ├── schemas/          # Pydantic
+│   ├── routers/          # API 路由
+│   ├── services/
+│   │   ├── codegen/      # Jinja2 代码生成
+│   │   ├── executor/     # 执行抽象 + api/ui/perf 实现 + runner
+│   │   ├── selfheal/     # DeepSeek 适配器 + 防误判三层
+│   │   └── registry/     # Executor/ShapeType/Reporter 注册表
+│   ├── templates/        # pytest/locust Jinja2 模板 (受控)
+│   └── core/             # config/db/安全/变量引擎
+├── runs/                 # 生成代码+日志+报告 (gitignored，按 run_id)
+├── frontend/             # Vue3 + Vite + AntV X6 (npm)
 ├── tests/                # 平台自身 pytest 测试
 ├── docs/                 # 设计文档
-└── AGENTS.md             # agent 指引
+└── AGENTS.md
 ```
 
 ---
 
 ## 七、数据模型
 
-### 7.1 核心实体
+> 架构评审后修订：见 [architecture-review.md](./architecture-review.md) 第四章
 
-**需求追溯**：`Requirement` ↔ `TestCase`（多对多）→ 追溯矩阵报表
+### 7.1 实体层级（修订后）
 
-**页面模型（本项目的地基）**：
-- `PageTemplate`（页面画布）：页面名、URL、所属项目 / 模块
-- `Shape`（形状）：类型 / 样式 / 位置 / 定位器 / 接口绑定 / 代码钩子 / 变量配置
-- `PageOperation`（页面操作，可选）：名称、类型、目标元素、关联接口、跳转目标页
+```
+Project (顶层容器)
+  ├─ Module (分组)
+  ├─ Environment: base_url + vars + headers，用例执行绑环境
+  ├─ Requirement
+  ├─ TestCase (加 environment_id, flow_id)
+  ├─ ApiDefinition (挂 project_id，UI/API/性能复用)
+  └─ Flow (挂 project_id)
+       └─ FlowNode (引用 PageTemplate + initial_vars 实例级覆盖)
+            └─ Step (引用 Shape + order + action_type + action_params)
+PageTemplate (挂 Project + Module)
+  └─ Shape (locator_history 版本数组 + current 指针)
+Requirement ↔ TestCase (多对多，追溯矩阵)
+TestData (挂 TestCase，数据驱动行)
+TestRun (加 environment_id, log_path, report_path, exit_code)
+SelfHealRecord (关联 Shape 版本 + run_id，可回滚)
+```
 
-**流转图**：`Flow`（节点 = 页面实例 + 边 = 跳转 + 跨页变量传递）
+### 7.2 关键归属厘清：Shape vs Step
 
-**测试用例**：
-- `TestCase`：绑定 flow + 数据绑定 JSON + 断言 JSON + 优先级
-- `TestData`：数据驱动行
+- **`PageTemplate` + `Shape` = 元素定义（可复用）**：页面"有什么字段/按钮"，跨流程共享
+- **`Flow` + `FlowNode` + `Step` = 流程实例的有序动作**：这条流程里"做哪些动作、什么顺序"，`Step.shape_id → Shape` + `Step.order`
+- **机制落地**：
+  - 简图画布 = PageTemplate 的 Shapes 按位置渲染
+  - 步骤列表 = FlowNode 的 Steps 按 order 排序
+  - 拖拽重排 = 改 `Step.order`
+  - 同一页模板在不同流程带不同步骤/初始变量 → `FlowNode.initial_vars`
 
-**执行**：`TestRun`（状态 / 开始 / 结束 / 报告路径 / 环境）
+### 7.3 自愈版本化
 
-**接口定义**：`ApiDefinition`（method / url / headers / body 模板 / 期望值）—— UI / API / 性能复用
+- `Shape.locator_history`：版本数组 + current 指针，不再简单覆盖
+- 自愈 append 新版本并标记 current，回滚 = 切回旧版本 current
+- `SelfHealRecord` 关联 Shape 版本 + run_id + 旧→新定位器 + 理由 + 页面状态
 
-**AI 自愈审计**：`SelfHealRecord`（旧 → 新定位器 + 理由 + 页面状态 + 可回滚）
+### 7.4 生成代码与报告落盘
 
-### 7.2 变量作用域
+- `runs/<run_id>/` 目录结构（test 文件 + log + 报告 + 截图/录像/trace）
+- gitignored，DB 存路径 + 关键 artifacts 路径，可追溯不丢
+
+### 7.5 变量作用域
 
 | 作用域 | 生命周期 | 用途 |
 |--------|---------|------|
@@ -265,6 +301,8 @@ TestEngineering/
 | flow | 整条流程 | 跨页面传值 |
 | page | 进页重置 | 关联字段联动（核心） |
 | local | 形状内部 | 临时变量 |
+
+变量渲染用简化 `{{var}}` 正则替换引擎（不用 Jinja2 全语法，根除注入；Jinja2 仅用于受控代码生成模板）。
 
 ---
 

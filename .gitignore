@@ -52,6 +52,10 @@ coverage.xml
 .hypothesis/
 cover/
 
+# Generated test code & run artifacts (DB stores paths; not version-controlled)
+runs/
+app/generated/
+
 # Test Reports and Logs
 reports/
 *.log
