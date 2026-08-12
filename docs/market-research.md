@@ -130,10 +130,33 @@
 - 只做移动端 GUI 状态机遍历，非业务用例编排
 - 再次印证"GUI 状态机模型"路径是有大厂投入的方向
 
-### 3.7 其他参考
+### 3.7 HttpRunner v5（开源，All-in-One）
+
+**来源**：实测 GitHub https://github.com/HttpRunner/HttpRunner （README 实证）
+
+**核心数据**：
+- stars: 4,295
+- 语言: Go（v5 起 Python 版迁移到 `httprunner/httprunner.py`）
+- 自 2017 年起，2022 年扩展支持 UI 自动化
+
+**核心能力**：
+- "All-in-One Testing Solution"——API + UI（Android/iOS/Harmony/Browser）+ 性能（boomer 并发跑 API testcase）**全模块**都有
+- **LLM 驱动**："Natural language driven test scenarios powered by LLM" + 大模型驱动用例生成
+- MCP server for UI automation + mcphost chat session 交互
+- testcase 格式统一：GoTest / YAML / JSON / Text / pytest
+- hrp CLI，跨平台 macOS/Linux/Windows
+- CI/CD 友好（JSON 日志 + HTML 报告）
+
+**与本项目的异同**：
+- **最强开源对标**：覆盖范围与你完全一致（API+UI+性能+AI），且已在 AI 方向发力
+- UI 自动化"采用大模型驱动 + OCR/CV/VLM"与本项目"录制 + AI 自愈"思路异曲同工
+- 但形态完全不同：HttpRunner 是 **Go 栈 + CLI（hrp）**，本项目是 **Python 栈 + Web 画布**
+- 形态差异决定两者生态位不冲突：HttpRunner 适合命令行/CI 场景，本项目适合可视化编排场景
+
+### 3.8 其他参考
 
 - **Spec Explorer（微软）**：实测 Wikipedia — MBT 工具，**最后版本停在 2013 年，微软放弃**。MBT 路径在业界的历史失败案例。
-- **RobotFramework RIDE**：stars 1,011，Python 的测试数据编辑器（树状/列表式可视化）。
+- **RobotFramework RIDE**：stars 1,011，Python 的测试数据编辑器（树状 / 列表式可视化）。
 - **Postman Flows**：可视化拖拽接口编排 + 变量，但只做 API。
 - **Airtest / Poco（网易）**：图像识别视觉建模，面向移动端 / 游戏。
 - **SikuliX**：截图图像识别驱动，视觉但非页面模板。
@@ -202,6 +225,8 @@ MBT（模型驱动测试）这个概念 30 年前就有，学术界反复研究�
 2. **跨字段联动靠接口返回值驱动**：A 字段输入 → 调接口 → 返回值存页面公共变量 → B 字段自动带出。Postman Flows 也只有列表式，没有这个
 3. **Python 代码钩子嵌入图形**——不是 Groovy / JS，是 Python（团队技术栈）
 
+**新增定位（实证后）**：与最强开源对标 HttpRunner v5（Go + CLI + LLM 驱动）相比，本项目走"**Python 全栈 + Web 画布**"生态位——两者覆盖一致但形态不冲突，HttpRunner 适合 CI/命令行场景，本项目适合可视化编排场景。**这一生态位在开源里暂时无人占位**。
+
 ### 5.3 化解 MBT 死路的三个救命点
 
 本项目的设计里有三个救命点，避免了重蹈 Spec Explorer 的覆辙：
@@ -221,6 +246,7 @@ MBT（模型驱动测试）这个概念 30 年前就有，学术界反复研究�
 | **GraphWalker** | 状态机图模型 → 自动生成测试路径 | 本项目"流转图"那部分的子集，无元素 / 钩子 / 变量 |
 | **Testim** | 录制 + AI Smart Locator 自愈 | 验证"录制 + AI 自愈"组合的成熟性 |
 | **Fastbot** | 移动端 GUI 状态机遍历 | 大厂投入"GUI 状态机"方向的存在感 |
+| **HttpRunner v5** | All-in-One（API+UI+性能），Go 栈 + CLI + LLM 驱动 | **最强开源对标**，覆盖一致但形态不同（CLI vs Web 画布，生态位不冲突）|
 | **Spec Explorer** | 微软 MBT，2013 年放弃 | MBT 路径的历史失败教训 |
 | **RobotFramework RIDE** | Python 测试数据编辑器（树状 / 列表） | 列表式可视化的开源对标 |
 | **Postman Flows** | 可视化拖拽接口编排 + 变量 | 仅 API，可参考变量联动设计 |
@@ -234,3 +260,4 @@ MBT（模型驱动测试）这个概念 30 年前就有，学术界反复研究�
 2. **不要重做 MBT**：保持"简图是组织层"的定位，不追求图形与页面的 1:1 映射，避免模型漂移死穴
 3. **AI 自愈弥补最大短板**：单人做不出完整 AI 自愈，但用第三方 API key（DeepSeek）即可补上 Katalon / Testim 的核心能力
 4. **借鉴而非照抄**：用例 / 接口 / 性能模块参考 MeterSphere 的结构，但代码用 Python 栈（FastAPI + Playwright + Locust）
+5. **对标 HttpRunner 而非重复造轮**：HttpRunner 在 API/UI/性能/LLM 上覆盖一致，本项目以"Web 画布可视化编排"差异化，与 HttpRunner 的 CLI 形态正交互补——后续可考虑兼容 HttpRunner 的 testcase 格式导入导出

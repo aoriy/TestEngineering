@@ -38,6 +38,7 @@
 | Locust 性能 | 成熟 | Python 原生，分布式 |
 | OpenAI 兼容协议 LLM | 成熟 | DeepSeek / Qwen / GLM 均兼容 |
 | 一份模型多执行 | 有先例 | Tricentis Tosca 的 model-based approach |
+| LLM 驱动测试用例 | 已落地 | HttpRunner v5（4295 stars）已用 LLM 驱动用例 + MCP server |
 
 **结论**：无任何未解技术难题。所有组件都有生产级实现。
 
@@ -56,9 +57,11 @@
 - 安全性需要约束（限制 import、超时控制），但单人使用风险可控
 
 #### AI 自愈
-- OpenAI 兼容协议 + DeepSeek 已实证可达
+- OpenAI 兼容协议 + DeepSeek 已实证可达（`deepseek-v4-pro` + thinking mode，OpenAI 兼容 `client.chat.completions.create`）
 - 复杂度在 Prompt 工程和 HTML 截断策略，不在底层
 - Testim 被 Tricentis 收购正是靠 AI Smart Locator 自愈 → 印证成熟
+- **HttpRunner v5 已在用 LLM 驱动 UI 自动化（OCR/CV/VLM）**→ 进一步印证这条路在开源界已有投入
+- **真正风险是误判而非成本**：三层防线（Playwright 验证 + 语义指纹校验 + 置信度门限）是核心投入
 
 ---
 
@@ -84,6 +87,8 @@
 - **最轻**：需求管理、用例管理——先做够用的 CRUD + 追溯，不做花活
 
 省下的时间全部投入阶段 2-3-3.5（画布 + 执行 + 自愈），这是独特点。
+
+**为什么不借力 MeterSphere / HttpRunner**：HttpRunner v5（Go）虽覆盖一致，MeterSphere（Java）虽一站式，但栈都不同。借力的代价是用例在别处跑、画布在 Python 端——**割裂没解决反而强化了**。本项目"Python 全栈 + Web 画布"生态位在开源里暂无人占位，自研反而成了优势。后续可考虑兼容 HttpRunner 的 testcase 格式做导入导出。
 
 ### 3.3 推荐的里程碑裁剪
 
@@ -222,3 +227,16 @@ Katalon 免费版 + 录制 + **AI 自愈**（页面变了自动修 XPath）已�
 ☐ 接受本可行性分析，按方案推进
 ☐ 重新讨论范围取舍
 ☐ 暂缓决定，需要更多调研
+
+---
+
+## 九、第二轮实证深挖补充（开放问题收敛）
+
+经第二轮实证调研（代理已通，DeepSeek / HttpRunner / Allure 实测确认），6 个开放问题全部收敛，详见 `requirements-analysis.md` 第十章。要点：
+
+1. **范围**：路线 C 全自研外围轻做，不借力不同栈工具（不强化割裂）
+2. **AI 自愈**：DeepSeek v4-pro + thinking，成本无忧，重点投三层防误判
+3. **多人协作**：预留字段 + X-User header，不实现鉴权，补 import/export
+4. **简图自动生成**：区域吸附为主（Playwright 真实坐标缩放），时间序兜底，不用 AI 布局
+5. **接口用例形态**：数据流走画布 + 顺序走列表，共享 ApiDefinition
+6. **报告**：MVP 用 pytest-html，Allure 可选开关

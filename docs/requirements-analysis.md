@@ -151,11 +151,23 @@ LLM返回候选定位器 (结构化JSON)
 ### 5.2 关键设计
 
 1. **适配器抽象**：`LlmAdapter` 支持 OpenAI 兼容协议，`base_url` 可配 → 兼容 DeepSeek / Qwen / GLM / OpenAI 任意一家
-2. **默认配置**：DeepSeek（国内推荐），api_key 走 `.env`（沿用 `OPENAI_API_KEY` 约定）
-3. **成本控制**：HTML 截断（只发定位器附近的 DOM 子集），token 上限
-4. **三档动作**：`auto`(置信度高自动改) / `suggest`(建议待确认) / `off`(关闭)
-5. **审计**：每次自愈记录"旧 → 新定位器 + 页面状态 + LLM 理由"，可回滚
-6. **自动化程度**：验证后自动修复（推荐路线）
+2. **默认配置**：DeepSeek（实证：`base_url=https://api.deepseek.com`，模型 `deepseek-v4-pro` / `v4-flash`，OpenAI 兼容协议 `client.chat.completions.create`），api_key 走 `.env`（沿用 `OPENAI_API_KEY` 约定）
+3. **模型选型（实证）**：自愈用 **`deepseek-v4-pro` + 开启 `thinking` mode + `reasoning_effort: high`**。自愈是"错一次比贵一万次更糟"的场景，质量优先于成本；thinking 模式让模型显式推理 XPath，可解释性强，正好填进自愈审计日志
+4. **成本无忧**：自愈只在定位失败时触发（健康代码库失败率 < 10%），单次 3-4k 入 + 1k 出 tokens，按 DeepSeek 公开量级是分钱级，一天回归数十次自愈约月几元级
+5. **三档动作**：`auto`(置信度高自动改) / `suggest`(建议待确认) / `off`(关闭)
+6. **审计**：每次自愈记录"旧 → 新定位器 + 页面状态 + LLM 理由"，可回滚
+7. **自动化程度**：验证后自动修复（推荐路线）
+8. **配额与缓存**：相同页面 + 旧定位器缓存自愈结果，不重复调；单次执行内自愈调用上限（防雪崩烧钱）；`.env` 的 `SELFHEAL_MODE=auto/suggest/off`，高危页面单独标 `suggest`
+
+### 5.3 防误判三层防线（核心投入点）
+
+LLM 自愈真正的风险不是成本，是**"看着对但语义错"**——找到页面里另一个相似按钮，自动修复后用例假绿。三层防线：
+
+1. **验证层**：Playwright 试跑新定位器，必须**唯一匹配 + 可见 + 可点击**才接受
+2. **语义指纹校验**：对比新旧定位器所在元素的 `innerText` / `aria-label` / `role` 相似度，低于阈值（如 0.6）降级为建议。这一层决定了"修的是同一个东西"
+3. **置信度门限**：要求 LLM 返回 JSON `{locators:[...], confidence:0.0-1.0}`，低于 0.8 转人工
+
+**工程重点投在这三层而非省钱**——成本无忧，质量才是自愈可用与否的分水岭。
 
 ### 5.3 AI 能力范围
 
@@ -291,16 +303,40 @@ TestEngineering/
 | LLM 供应商 | DeepSeek（OpenAI 兼容） | 国内可达、便宜、协议通用 |
 | 自愈自动化程度 | 验证后自动修复 | 平衡效率与安全 |
 | AI 能力范围 | 自愈 + 分析建议 | 聚焦核心痛点，不做重量功能 |
+| 范围取舍（决策补充）| 全自研外围轻做（路线 C）| HttpRunner(Go)/MeterSphere(Java) 不同栈，借力反而强化割裂；"Python 全栈+画布"是差异化生态位 |
+| AI 自愈模型选型 | DeepSeek v4-pro + thinking | 自愈是"错一次比贵一万次更糟"，质量优先；thinking 可解释性强，填进审计日志 |
+| 自愈防误判 | 验证层 + 语义指纹 + 置信度门限 | 修"对的东西"比省钱重要，三层决定可用性 |
+| 简图自动生成 | 区域吸附为主 + 时间序兜底 | Playwright 真实坐标缩放上画布，匹配"一比一示意"初衷，不用 AI 布局 |
+| 接口用例形态 | 数据流走画布 + 顺序走列表，共享 ApiDefinition | 与 HttpRunner 统一格式理念一致，但画布形态升级 |
+| 报告方案 | MVP 用 pytest-html，Allure 可选开关 | 个人工具无需 Allure 的汇报价值；Allure 依赖已留 |
+| 多人协作预留 | 预留 owner/project 字段 + X-User header | 不实现鉴权，单人阶段权限纯负担；补 import/export 导出 |
 
 ---
 
-## 十、待用户进一步考虑的开放问题
+## 十、开放问题收敛结论（实证补充调研后）
 
-本方案已定稿，但用户表示需要仔细考虑。以下为留待后续讨论的开放点：
+以下 6 个开放问题经第二轮实证调研（代理已通）后全部收敛：
 
-1. **范围是否再取舍**：需求 / 用例模块是否做到"够用"为止，或者干脆用现成工具（MeterSphere）替代，只自研核心画布部分？
-2. **AI 自愈成本上限**：DeepSeek 调用频率高时的成本，是否需要做配额 / 缓存？
-3. **多人协作扩展**：单机起步后，未来是否要加用户 / 权限？预留到什么程度？
-4. **简图自动生成**：录制置入时，形状在画布上如何自动排版？需不需要让 AI 根据页面截图自动布局？
-5. **接口测试 UI 形态**：API 用例是独立模块还是嵌入到页面简图中（与 UI 共享 ApiDefinition）？
-6. **报告与 Allure**：是否引入 Allure 做可视化报告，还是用轻量 pytest-html？
+### 1. 范围取舍——路线 C 全自研外围轻做
+
+**结论**：不借力 MeterSphere / HttpRunner。理由：HttpRunner v5（4295 stars，Go）虽覆盖一致但栈不同；MeterSphere（Java）亦不同栈。**你的痛点是"用例/元素/步骤/执行彼此割裂"，借力不同栈工具恰恰强化割裂**——用例去别处跑，画布在 Python 端，绑定断了。**只有自研一条路能让画布↔执行↔自愈全打通，且"Python 全栈+Web 画布"在开源里暂无人占位**。
+
+### 2. AI 自愈成本——DeepSeek v4-pro + thinking，成本无忧
+
+**实证**：DeepSeek `base_url=https://api.deepseek.com`，模型 `deepseek-v4-pro`/`v4-flash`，支持 `thinking` mode + `reasoning_effort: high`，OpenAI 兼容协议。自愈只在定位失败时触发（< 10%），单次分钱级，月几元级。**重点不在省钱而在防误判**，采用 v4-pro + thinking 让可解释性填进审计日志。三层防线（验证 + 语义指纹 + 置信度门限）是核心投入点。
+
+### 3. 多人协作——预留到字段级，不实现鉴权
+
+**结论**：预留 `owner`/`project` 字段 + `X-User` header 占位，不画登录页、不做 RBAC、不做并发锁。单人阶段权限是纯负担，真要多人时改造成本可控。**补一项 import/export**（项目/用例/画布整体导出 JSON），低工作量、高未来弹性。
+
+### 4. 简图自动生成——区域吸附为主，时间序兜底
+
+**结论**：录制每个元素时 Playwright 已通过 `getBoundingClientRect` 拿到真实坐标，缩放映射到画布坐标系，形状自动落在贴近真实页面的位置。Users 手动微调即可。**正好匹配"简图一比一示意真实页面"的初衷，不用 AI 布局**（AI 布局不稳定且过度工程）。坐标无法获取（如 iframe 内）降级为时间序排列。录制结束给"自动排版"重跑按钮。
+
+### 5. 接口测试 UI 形态——双视图共享 ApiDefinition
+
+**结论**：复杂数据流（取数→创建→断言）用画布画，享受变量联动；轻量顺序用例走列表页。二者共用 `ApiDefinition` + 变量系统，是同一数据的不同视图。**与 HttpRunner v5 统一格式理念一致，但画布形态升级**——HttpRunner 是 GoTest/YAML/JSON/Text/pytest 多格式统一，本项目是"画布/列表双视图 + 共享定义"，形态差异即差异化。
+
+### 6. 报告方案——MVP 用 pytest-html，Allure 可选开关
+
+**实证**：Allure（Python 适配 813 stars + allure2 5494 stars，需 Java 二进制）vs pytest-html（775 stars，纯 Python 一键单文件）。**MVP 用 pytest-html**（零额外依赖、栈一致），`TestRun` 表存原始结果，渲染"有 Allure 用 Allure，否则 pytest-html"。Allure 作为可选开关（`allure-pytest` 依赖已留），需要汇报场景时再装命令行。
