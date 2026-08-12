@@ -4,6 +4,32 @@
 > 配套文档：[requirements-analysis.md](./requirements-analysis.md)、[feasibility-analysis.md](./feasibility-analysis.md)、[market-research.md](./market-research.md)
 > 评审范围：合理性 / 健壮性 / 扩展性三维检视，聚焦"开工前必决"的关键问题
 
+## 相关文档索引（arc42 最小说闭环）
+
+| 文档 | 类型 | 内容 |
+|------|------|------|
+| [system-context.md](./system-context.md) | C4 L1 | 系统与外部边界（SUT/浏览器/DeepSeek/Locust） |
+| [container-view.md](./container-view.md) | C4 L2 | 容器部署单元与数据流 |
+| [sequence-diagrams.md](./sequence-diagrams.md) | 时序 | 执行/自愈/录制导入 3 张 Mermaid 时序图 |
+| [nfr.md](./nfr.md) | 质量需求 | 性能/并发/安全/可观测/可维护 量化指标 |
+| [glossary.md](./glossary.md) | 术语表 | Shape/Step/Flow/PageTemplate/作用域 等定义 |
+| `adr/ADR-0001~0007` | 决策记录 | 7 条关键架构决策登记 |
+| [requirements-analysis.md](./requirements-analysis.md) | 需求分析 | 完整方案设计主文档 |
+| [feasibility-analysis.md](./feasibility-analysis.md) | 可行性 | 技术/市场/工程三维评估 |
+| [market-research.md](./market-research.md) | 市场调研 | 同类产品实证对标 |
+
+### 待补文档（到对应阶段自动提示，见 smart notes）
+
+- 数据模型字段级 + 索引 — 阶段 0 建表时
+- API 设计草案 + 错误码 — 阶段 0-1 间
+- 测试策略 — 阶段 0 末
+- 编码规范（并入 AGENTS.md）— 阶段 0 起
+- 部署文档（单机）— 阶段 0 末
+- 画布交互细节 — 阶段 2
+- AI 自愈 Prompt 设计 — 阶段 3.5
+- Locust 细化 — 阶段 4
+- 录制导入细化 — 阶段 5
+
 ---
 
 ## 一、评审结论速览
