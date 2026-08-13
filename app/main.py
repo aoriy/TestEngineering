@@ -11,6 +11,7 @@ from app.routers import (
     health,
     page_templates,
     projects,
+    record,
     requirements,
     runs,
     selfheal,
@@ -47,3 +48,4 @@ app.include_router(shape_types.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
 app.include_router(api_definitions.router, prefix="/api")
 app.include_router(selfheal.router, prefix="/api")
+app.include_router(record.router, prefix="/api")

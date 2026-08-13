@@ -114,6 +114,54 @@ async function saveSelected() {
   await load()
 }
 
+const recording = ref(false)
+const recordId = ref('')
+const recordUrl = ref('')
+const recordMsg = ref('')
+const recordVisible = ref(false)
+const environments = ref<{ id: number; name: string }[]>([])
+const flows = ref<{ id: number; name: string }[]>([])
+const recordForm = ref({ environment_id: 0, flow_id: 0 })
+
+async function openRecord() {
+  const t = await (await fetch(`/api/page-templates/${templateId}`)).json()
+  environments.value = await (
+    await fetch(`/api/projects/${t.project_id}/environments`)
+  ).json()
+  flows.value = await (await fetch(`/api/flows?project_id=${t.project_id}`)).json()
+  recordMsg.value = ''
+  recordVisible.value = true
+}
+
+async function startRecord() {
+  const body: Record<string, unknown> = { page_template_id: templateId }
+  if (recordForm.value.environment_id) body.environment_id = recordForm.value.environment_id
+  if (recordForm.value.flow_id) body.flow_id = recordForm.value.flow_id
+  const r = await fetch('/api/record/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const d = await r.json()
+  recordId.value = d.record_id
+  recordUrl.value = d.url
+  recording.value = true
+  recordMsg.value = `录制中，请在浏览器操作：${d.url}`
+}
+
+async function stopRecord() {
+  const r = await fetch('/api/record/stop', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ record_id: recordId.value }),
+  })
+  const d = await r.json()
+  recording.value = false
+  recordMsg.value = `已导入：新建形状 ${d.shapes_created}，步骤 ${d.steps_created}`
+  recordVisible.value = false
+  await load()
+}
+
 onMounted(() => {
   graph = new Graph({
     container: containerRef.value!,
@@ -121,7 +169,6 @@ onMounted(() => {
     panning: true,
     background: { color: '#f5f6f8' },
   })
-
   graph.on('node:moved', async ({ node }) => {
     const pos = node.getPosition()
     await fetch(`/api/page-templates/${templateId}/shapes/${node.id}`, {
@@ -173,6 +220,7 @@ onMounted(() => {
       >
         删除选中
       </el-button>
+      <el-button type="warning" @click="openRecord">录制</el-button>
     </div>
 
     <div class="body">
@@ -201,6 +249,39 @@ onMounted(() => {
         </el-form>
       </div>
     </div>
+
+    <el-dialog v-model="recordVisible" title="录制页面操作" width="480px">
+      <template v-if="!recording">
+        <el-form label-width="90px">
+          <el-form-item label="环境">
+            <el-select v-model="recordForm.environment_id" placeholder="选择环境（决定 base_url）">
+              <el-option
+                v-for="e in environments"
+                :key="e.id"
+                :label="e.name"
+                :value="e.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="归属流程">
+            <el-select v-model="recordForm.flow_id" placeholder="可选，生成步骤归属的流程">
+              <el-option
+                v-for="f in flows"
+                :key="f.id"
+                :label="f.name"
+                :value="f.id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <el-button type="primary" @click="startRecord">开始录制</el-button>
+      </template>
+      <template v-else>
+        <el-alert type="warning" :title="recordMsg" :closable="false" />
+        <p>操作完成后点击停止，自动生成形状与步骤。</p>
+        <el-button type="danger" @click="stopRecord">停止并导入</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

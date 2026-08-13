@@ -86,8 +86,13 @@ cd frontend; npm run dev
 | uv 提示 hardlink 警告 | 无害；`$env:UV_LINK_MODE='copy'` 可静默 |
 | CRLF 警告 | 无害，Windows 行尾，偏好 LF 编辑 |
 
-## 八、待补（后续阶段）
+## 八、UI 执行与录制前置（阶段 3/5）
+
+- Playwright 首次运行需下载浏览器：`uv run playwright install chromium`（约 150MB）
+- UI 执行（executor=ui）与录制导入（`/api/record/start`）依赖浏览器已安装
+- API / 性能执行无需浏览器
+
+## 九、待补（后续阶段）
 
 - 生产模式 nginx 反代 `/api` 配置示例
 - Linux/Docker 部署（当前仅 Windows 主开发）
-- 性能压测（Locust）与 Playwright 浏览器安装说明（`playwright install`）

@@ -171,3 +171,13 @@ class SelfHealRequest(BaseModel):
     page_html: str = ""
     old_meta: dict | None = None
     run_id: str = ""
+
+
+class RecordStart(BaseModel):
+    page_template_id: int
+    environment_id: int | None = None
+    flow_id: int | None = None
+
+
+class RecordStop(BaseModel):
+    record_id: str

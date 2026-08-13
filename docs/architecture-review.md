@@ -22,14 +22,14 @@
 | [deployment.md](./deployment.md) | 部署 | 单机启动 + .env 配置清单（阶段 0/1） |
 | [selfheal-prompt-design.md](./selfheal-prompt-design.md) | AI 自愈 | Prompt 模板 + 三层防线 + 回滚（阶段 3.5） |
 | [locust-detail.md](./locust-detail.md) | 性能 | Locust codegen + spawn + CSV 指标（阶段 4） |
+| [record-import-detail.md](./record-import-detail.md) | 录制导入 | codegen 录制 → 解析 → Shape/Step（阶段 5） |
 
 ### 待补文档（到对应阶段自动提示，见 smart notes）
 
 - 测试策略 — 阶段 0 末（待 tests/ 出现 test_*.py）
 - 画布交互细节 — 阶段 2
-- 录制导入细化 — 阶段 5
 
-> 编码规范已并入 AGENTS.md「Coding conventions」章节；字段级数据模型 / API 设计 / 部署文档 / AI 自愈 Prompt 设计 / Locust 细化已随对应阶段补全。
+> 编码规范已并入 AGENTS.md「Coding conventions」章节；字段级数据模型 / API 设计 / 部署文档 / AI 自愈 Prompt 设计 / Locust 细化 / 录制导入细化已随对应阶段补全。
 
 ---
 
