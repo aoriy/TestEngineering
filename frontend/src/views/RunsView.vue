@@ -101,7 +101,7 @@ onUnmounted(() => {
         <el-form-item label="执行器">
           <el-select v-model="form.executor" style="width: 120px">
             <el-option label="API" value="api" />
-            <el-option label="UI" value="ui" disabled />
+            <el-option label="UI" value="ui" />
             <el-option label="性能" value="perf" />
           </el-select>
         </el-form-item>

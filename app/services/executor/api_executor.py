@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.paths import PROJECT_ROOT
 from app.services.codegen.generator import generate_api_test
 from app.services.codegen.perf import generate_locustfile
+from app.services.codegen.ui import generate_ui_test
 from app.services.executor.base import Executor, RunRequest, RunResult
 
 
@@ -47,11 +48,27 @@ class UiExecutor(Executor):
     key = "ui"
 
     def generate_code(self, db: Session, request: RunRequest) -> Path:
-        # Phase 3.x: Playwright POM codegen. Requires `playwright install`.
-        raise NotImplementedError("UI executor codegen is not implemented yet")
+        if request.testcase_id is None:
+            raise ValueError("testcase_id is required for the ui executor")
+        code = generate_ui_test(db, request.testcase_id)
+        out = _generated_dir(request.run_id)
+        out.mkdir(parents=True, exist_ok=True)
+        (out / f"test_case_{request.testcase_id}.py").write_text(code, encoding="utf-8")
+        return out
 
     def build_command(self, request: RunRequest, generated_dir: Path) -> list[str]:
-        return ["uv", "run", "python", "-m", "pytest", str(generated_dir), "-q"]
+        return [
+            "uv",
+            "run",
+            "python",
+            "-m",
+            "pytest",
+            str(generated_dir),
+            "--html",
+            str(_report_path(request.run_id)),
+            "--self-contained-html",
+            "-q",
+        ]
 
 
 class PerfExecutor(Executor):

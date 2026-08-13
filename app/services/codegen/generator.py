@@ -91,6 +91,9 @@ def generate_api_test(db: Session, testcase_id: int) -> str:
                     )
 
     template = _env.get_template("api_test.py.j2")
+    data_rows = list(tc.data_rows or [])
+    param_rows = [r.row or {} for r in data_rows]
+    row_ids = [r.name or f"row_{i}" for i, r in enumerate(data_rows)]
     return template.render(
         test_name=f"case_{tc.id}",
         base_url=base_url,
@@ -99,4 +102,6 @@ def generate_api_test(db: Session, testcase_id: int) -> str:
         api_defs=_collect_api_defs(db, steps),
         steps=steps,
         assertions=tc.assertions or [],
+        param_rows=param_rows,
+        row_ids=row_ids,
     )
