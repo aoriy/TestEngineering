@@ -39,6 +39,9 @@ ENV/
 .pydevproject
 .settings/
 
+# Editor/tooling plugin internals
+.cortexkit/
+
 # Testing
 .pytest_cache/
 .coverage
