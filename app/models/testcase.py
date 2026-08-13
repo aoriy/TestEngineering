@@ -1,9 +1,14 @@
-from sqlalchemy import JSON, ForeignKey, String, Text
+from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.base import TimestampMixin
 from app.models.requirement import requirement_testcase
+
+if TYPE_CHECKING:
+    from app.models.requirement import Requirement
 
 
 class TestCase(Base, TimestampMixin):

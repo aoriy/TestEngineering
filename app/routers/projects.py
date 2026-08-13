@@ -47,7 +47,9 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{project_id}/modules", response_model=ModuleRead)
-def create_module(project_id: int, payload: ModuleCreate, db: Session = Depends(get_db)):
+def create_module(
+    project_id: int, payload: ModuleCreate, db: Session = Depends(get_db)
+):
     if db.get(Project, project_id) is None:
         raise HTTPException(404, "project not found")
     obj = Module(project_id=project_id, name=payload.name, parent_id=payload.parent_id)
@@ -59,7 +61,12 @@ def create_module(project_id: int, payload: ModuleCreate, db: Session = Depends(
 
 @router.get("/{project_id}/modules", response_model=list[ModuleRead])
 def list_modules(project_id: int, db: Session = Depends(get_db)):
-    return db.query(Module).filter(Module.project_id == project_id).order_by(Module.id).all()
+    return (
+        db.query(Module)
+        .filter(Module.project_id == project_id)
+        .order_by(Module.id)
+        .all()
+    )
 
 
 @router.post("/{project_id}/environments", response_model=EnvironmentRead)

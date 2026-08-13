@@ -9,6 +9,8 @@ const menus = [
   { path: '/requirements', label: '需求管理' },
   { path: '/testcases', label: '用例管理' },
   { path: '/traceability', label: '追溯矩阵' },
+  { path: '/page-templates', label: '页面模板' },
+  { path: '/flows', label: '流转图' },
 ]
 </script>
 

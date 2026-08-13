@@ -36,7 +36,9 @@ def get_testcase(testcase_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{testcase_id}", response_model=TestCaseRead)
-def update_testcase(testcase_id: int, payload: TestCaseUpdate, db: Session = Depends(get_db)):
+def update_testcase(
+    testcase_id: int, payload: TestCaseUpdate, db: Session = Depends(get_db)
+):
     obj = db.get(TestCase, testcase_id)
     if obj is None:
         raise HTTPException(404, "testcase not found")
@@ -59,8 +61,12 @@ def delete_testcase(testcase_id: int, db: Session = Depends(get_db)):
 # --- traceability (Requirement <-> TestCase) ---
 
 
-@router.post("/{testcase_id}/requirements/{requirement_id}", response_model=TestCaseRead)
-def link_requirement(testcase_id: int, requirement_id: int, db: Session = Depends(get_db)):
+@router.post(
+    "/{testcase_id}/requirements/{requirement_id}", response_model=TestCaseRead
+)
+def link_requirement(
+    testcase_id: int, requirement_id: int, db: Session = Depends(get_db)
+):
     tc = db.get(TestCase, testcase_id)
     req = db.get(Requirement, requirement_id)
     if tc is None or req is None:
@@ -72,8 +78,12 @@ def link_requirement(testcase_id: int, requirement_id: int, db: Session = Depend
     return tc
 
 
-@router.delete("/{testcase_id}/requirements/{requirement_id}", response_model=TestCaseRead)
-def unlink_requirement(testcase_id: int, requirement_id: int, db: Session = Depends(get_db)):
+@router.delete(
+    "/{testcase_id}/requirements/{requirement_id}", response_model=TestCaseRead
+)
+def unlink_requirement(
+    testcase_id: int, requirement_id: int, db: Session = Depends(get_db)
+):
     tc = db.get(TestCase, testcase_id)
     req = db.get(Requirement, requirement_id)
     if tc is None or req is None:
@@ -90,7 +100,10 @@ def unlink_requirement(testcase_id: int, requirement_id: int, db: Session = Depe
 
 @router.post("/{testcase_id}/data", response_model=TestCaseRead)
 def add_data_row(
-    testcase_id: int, name: str = "", row: dict | None = None, db: Session = Depends(get_db)
+    testcase_id: int,
+    name: str = "",
+    row: dict | None = None,
+    db: Session = Depends(get_db),
 ):
     tc = db.get(TestCase, testcase_id)
     if tc is None:

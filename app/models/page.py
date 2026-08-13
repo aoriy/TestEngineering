@@ -31,7 +31,7 @@ class Shape(Base, TimestampMixin):
     page_template_id: Mapped[int] = mapped_column(
         ForeignKey("page_template.id", ondelete="CASCADE"), nullable=False
     )
-    # input / button / select / checkbox / api / variable / code / assert / wait / condition
+    # input/button/select/checkbox/api/variable/code/assert/wait/condition
     shape_type: Mapped[str] = mapped_column(String(32), nullable=False)
     label: Mapped[str] = mapped_column(String(255), default="")
 

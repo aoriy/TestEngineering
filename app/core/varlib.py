@@ -51,7 +51,12 @@ class VariableStore:
 
     def as_dict(self) -> dict:
         merged = {}
-        for scope in (self.global_vars, self.flow_vars, self.page_vars, self.local_vars):
+        for scope in (
+            self.global_vars,
+            self.flow_vars,
+            self.page_vars,
+            self.local_vars,
+        ):
             merged.update(scope)
         return merged
 

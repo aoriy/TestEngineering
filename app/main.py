@@ -5,7 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.routers import health, projects, requirements, testcases, traceability
+from app.routers import (
+    flows,
+    health,
+    page_templates,
+    projects,
+    requirements,
+    shape_types,
+    testcases,
+    traceability,
+)
 
 
 @asynccontextmanager
@@ -29,3 +38,6 @@ app.include_router(projects.router, prefix="/api")
 app.include_router(requirements.router, prefix="/api")
 app.include_router(testcases.router, prefix="/api")
 app.include_router(traceability.router, prefix="/api")
+app.include_router(page_templates.router, prefix="/api")
+app.include_router(flows.router, prefix="/api")
+app.include_router(shape_types.router, prefix="/api")

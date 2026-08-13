@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import JSON, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.base import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.page import PageTemplate
 
 
 class Flow(Base, TimestampMixin):
@@ -38,9 +43,14 @@ class FlowNode(Base, TimestampMixin):
     initial_vars: Mapped[dict] = mapped_column(JSON, default=dict)
 
     flow: Mapped["Flow"] = relationship(back_populates="nodes")
+    page_template: Mapped["PageTemplate"] = relationship()
     steps: Mapped[list["Step"]] = relationship(
         back_populates="flow_node", cascade="all, delete-orphan"
     )
+
+    @property
+    def page_template_name(self) -> str:
+        return self.page_template.name if self.page_template else ""
 
 
 class Step(Base, TimestampMixin):
