@@ -12,6 +12,10 @@ dependencies = [
     "loguru",
     "openpyxl",
     "PyYAML>=5.1",
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.2",
+    "sqlalchemy>=2.0.52",
+    "pydantic-settings>=2.15.0",
 ]
 
 [project.optional-dependencies]
