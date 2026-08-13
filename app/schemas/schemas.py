@@ -128,6 +128,7 @@ class RunCreate(BaseModel):
     testcase_id: int
     environment_id: int | None = None
     executor: str = "api"
+    params: dict = {}
 
 
 class TestRunRead(ORMModel):

@@ -18,6 +18,7 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "jinja2>=3.1.6",
     "jsonpath-ng>=1.8.0",
+    "locust>=2.46.3",
 ]
 
 [project.optional-dependencies]

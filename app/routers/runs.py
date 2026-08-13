@@ -106,6 +106,8 @@ def _launch(run_db_id: int, run_id: str, payload: RunCreate) -> None:
             run.status = result.status
             run.exit_code = proc.returncode
             run.finished_at = _now()
+            if result.artifacts:
+                run.artifacts = result.artifacts
             db.commit()
         except Exception as exc:  # noqa: BLE001
             run = db.get(TestRun, run_db_id)
@@ -128,4 +130,5 @@ def _request(run_id: str, payload: RunCreate):
         run_id=run_id,
         testcase_id=payload.testcase_id,
         environment_id=payload.environment_id,
+        params=dict(payload.params or {}),
     )

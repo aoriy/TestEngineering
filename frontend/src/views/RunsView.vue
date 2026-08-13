@@ -18,7 +18,7 @@ interface TestRun {
 
 const testcases = ref<TestCase[]>([])
 const runs = ref<TestRun[]>([])
-const form = ref({ testcase_id: 0, executor: 'api' })
+const form = ref({ testcase_id: 0, executor: 'api', users: 10, spawn_rate: 1, run_time: '30s' })
 const selectedRun = ref<TestRun | null>(null)
 const logText = ref('')
 const logVisible = ref(false)
@@ -44,10 +44,21 @@ function startPolling() {
 
 async function trigger() {
   if (!form.value.testcase_id) return
+  const body: Record<string, unknown> = {
+    testcase_id: form.value.testcase_id,
+    executor: form.value.executor,
+  }
+  if (form.value.executor === 'perf') {
+    body.params = {
+      users: form.value.users,
+      spawn_rate: form.value.spawn_rate,
+      run_time: form.value.run_time,
+    }
+  }
   await fetch('/api/runs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form.value),
+    body: JSON.stringify(body),
   })
   await loadRuns()
   startPolling()
@@ -91,9 +102,20 @@ onUnmounted(() => {
           <el-select v-model="form.executor" style="width: 120px">
             <el-option label="API" value="api" />
             <el-option label="UI" value="ui" disabled />
-            <el-option label="性能" value="perf" disabled />
+            <el-option label="性能" value="perf" />
           </el-select>
         </el-form-item>
+        <template v-if="form.executor === 'perf'">
+          <el-form-item label="用户数">
+            <el-input-number v-model="form.users" :min="1" :max="1000" />
+          </el-form-item>
+          <el-form-item label="每秒孵化">
+            <el-input-number v-model="form.spawn_rate" :min="1" :max="100" />
+          </el-form-item>
+          <el-form-item label="时长">
+            <el-input v-model="form.run_time" style="width: 90px" />
+          </el-form-item>
+        </template>
         <el-form-item>
           <el-button type="primary" @click="trigger">执行</el-button>
         </el-form-item>
