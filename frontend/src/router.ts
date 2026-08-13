@@ -8,6 +8,7 @@ import PageTemplatesView from './views/PageTemplatesView.vue'
 import PageCanvasView from './views/PageCanvasView.vue'
 import FlowsView from './views/FlowsView.vue'
 import FlowEditorView from './views/FlowEditorView.vue'
+import RunsView from './views/RunsView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -25,6 +26,7 @@ const router = createRouter({
         { path: 'page-templates/:id', component: PageCanvasView },
         { path: 'flows', component: FlowsView },
         { path: 'flows/:id', component: FlowEditorView },
+        { path: 'runs', component: RunsView },
       ],
     },
   ],

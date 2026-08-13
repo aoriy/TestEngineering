@@ -11,6 +11,7 @@ const menus = [
   { path: '/traceability', label: '追溯矩阵' },
   { path: '/page-templates', label: '页面模板' },
   { path: '/flows', label: '流转图' },
+  { path: '/runs', label: '执行' },
 ]
 </script>
 

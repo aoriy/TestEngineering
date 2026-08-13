@@ -37,8 +37,13 @@ class ShapeBase(BaseModel):
     style: dict = {}
     locator_type: str = "data-testid"
     locator_value: str = ""
+    api_definition_id: int | None = None
+    api_params: dict = {}
+    extraction_rules: dict = {}
     value_source: str = "literal"
     value: str = ""
+    before_code: str = ""
+    after_code: str = ""
 
 
 class ShapeCreate(ShapeBase):
@@ -67,11 +72,6 @@ class ShapeUpdate(BaseModel):
 class ShapeRead(ShapeBase, ORMModel):
     id: int
     page_template_id: int
-    api_definition_id: int | None
-    api_params: dict = {}
-    extraction_rules: dict = {}
-    before_code: str = ""
-    after_code: str = ""
 
 
 class ShapeTypeRead(ORMModel):

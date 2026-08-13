@@ -18,6 +18,8 @@
     StepUpdate,
 )
 from app.schemas.schemas import (
+    ApiDefinitionCreate,
+    ApiDefinitionRead,
     EnvironmentCreate,
     EnvironmentRead,
     ModuleCreate,
@@ -27,13 +29,17 @@ from app.schemas.schemas import (
     RequirementCreate,
     RequirementRead,
     RequirementUpdate,
+    RunCreate,
     TestCaseCreate,
     TestCaseRead,
     TestCaseUpdate,
     TestDataRead,
+    TestRunRead,
 )
 
 __all__ = [
+    "ApiDefinitionCreate",
+    "ApiDefinitionRead",
     "EnvironmentCreate",
     "EnvironmentRead",
     "ModuleCreate",
@@ -43,10 +49,12 @@ __all__ = [
     "RequirementCreate",
     "RequirementRead",
     "RequirementUpdate",
+    "RunCreate",
     "TestCaseCreate",
     "TestCaseRead",
     "TestCaseUpdate",
     "TestDataRead",
+    "TestRunRead",
     "FlowCreate",
     "FlowEdgeCreate",
     "FlowEdgeRead",

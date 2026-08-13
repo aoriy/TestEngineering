@@ -122,3 +122,43 @@ class TestCaseRead(TestCaseBase, ORMModel):
     environment_id: int | None
     requirement_ids: list[int] = []
     data_rows: list[TestDataRead] = []
+
+
+class RunCreate(BaseModel):
+    testcase_id: int
+    environment_id: int | None = None
+    executor: str = "api"
+
+
+class TestRunRead(ORMModel):
+    id: int
+    run_id: str
+    testcase_id: int | None
+    environment_id: int | None
+    status: str
+    started_at: datetime | None
+    finished_at: datetime | None
+    exit_code: int | None
+    runs_dir: str
+    log_path: str
+    report_path: str
+    artifacts: dict = {}
+
+
+class ApiDefinitionBase(BaseModel):
+    name: str
+    method: str = "GET"
+    url: str
+    headers: dict = {}
+    params: dict = {}
+    body_template: str = ""
+    expected: dict = {}
+
+
+class ApiDefinitionCreate(ApiDefinitionBase):
+    project_id: int
+
+
+class ApiDefinitionRead(ApiDefinitionBase, ORMModel):
+    id: int
+    project_id: int
