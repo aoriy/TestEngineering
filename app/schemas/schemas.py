@@ -162,3 +162,11 @@ class ApiDefinitionCreate(ApiDefinitionBase):
 class ApiDefinitionRead(ApiDefinitionBase, ORMModel):
     id: int
     project_id: int
+
+
+class SelfHealRequest(BaseModel):
+    shape_id: int
+    old_locator: str
+    page_html: str = ""
+    old_meta: dict | None = None
+    run_id: str = ""

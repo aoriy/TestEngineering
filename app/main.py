@@ -13,6 +13,7 @@ from app.routers import (
     projects,
     requirements,
     runs,
+    selfheal,
     shape_types,
     testcases,
     traceability,
@@ -45,3 +46,4 @@ app.include_router(flows.router, prefix="/api")
 app.include_router(shape_types.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
 app.include_router(api_definitions.router, prefix="/api")
+app.include_router(selfheal.router, prefix="/api")

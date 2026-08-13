@@ -38,7 +38,9 @@ def get_run_log(run_id: str, db: Session = Depends(get_db)):
     if obj is None or not obj.log_path:
         raise HTTPException(404, "run or log not found")
     try:
-        return (run_dir_for(run_id) / "log.txt").read_text(encoding="utf-8", errors="replace")
+        return (run_dir_for(run_id) / "log.txt").read_text(
+            encoding="utf-8", errors="replace"
+        )
     except FileNotFoundError:
         return ""
 
