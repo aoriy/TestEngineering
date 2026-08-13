@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.routers import health
+from app.routers import health, projects, requirements, testcases, traceability
 
 
 @asynccontextmanager
@@ -25,3 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(projects.router, prefix="/api")
+app.include_router(requirements.router, prefix="/api")
+app.include_router(testcases.router, prefix="/api")
+app.include_router(traceability.router, prefix="/api")

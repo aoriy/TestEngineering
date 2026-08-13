@@ -39,3 +39,7 @@ class Requirement(Base, TimestampMixin):
     testcases: Mapped[list["TestCase"]] = relationship(
         secondary=requirement_testcase, back_populates="requirements"
     )
+
+    @property
+    def testcase_ids(self) -> list[int]:
+        return [tc.id for tc in self.testcases]

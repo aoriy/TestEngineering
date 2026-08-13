@@ -33,6 +33,10 @@ class TestCase(Base, TimestampMixin):
         back_populates="testcase", cascade="all, delete-orphan"
     )
 
+    @property
+    def requirement_ids(self) -> list[int]:
+        return [r.id for r in self.requirements]
+
 
 class TestData(Base, TimestampMixin):
     __tablename__ = "test_data"
