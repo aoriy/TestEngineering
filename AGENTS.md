@@ -27,6 +27,28 @@ Guidance for OpenCode agents working in this repository.
 - **Generated code & run artifacts** go to `runs/<run_id>/` (gitignored); DB stores paths.
 - **Plugins via registry**: `Executor` / `ShapeType` / `Reporter` are registry-based — add implementations, don't edit core.
 
+## Coding conventions
+
+### Python (backend, `app/`)
+
+- Style: **black** formatting, **flake8** lint, **mypy** typecheck (all in `dev` extras). Run: `uv run black .`, `uv run flake8 app`, `uv run mypy app`.
+- Use SQLAlchemy 2.0 style: `Mapped[...]` + `mapped_column(...)` (see `app/models/`).
+- Pydantic v2: `model_config = ConfigDict(from_attributes=True)` for read models (see `app/schemas/schemas.py`).
+- Routers live in `app/routers/` (one file per resource); schemas in `app/schemas/`; services (executor/codegen/selfheal/registry) in `app/services/`.
+- New executor/shape-type/reporter = add an implementation + register it in the registry — do NOT edit core.
+
+### Vue/TS (frontend, `frontend/`)
+
+- Vue 3 `<script setup lang="ts">` + Composition API.
+- Typecheck via `vue-tsc` (`npm run build` runs `vue-tsc -b && vite build`). Keep `noUnusedLocals`/`noUnusedParameters` clean.
+- Element Plus components; state in `ref`/`reactive`; API calls via `fetch('/api/...')` (Vite proxy handles `/api`).
+- Route pages live in `src/views/`; shared router in `src/router.ts`.
+
+### General
+
+- Commit messages: `<type>(<scope>): <summary>` where type ∈ `feat`/`docs`/`refactor`/`fix`; tag phases (`feat(phase0)`, `feat(phase1)`, ...).
+- No comments unless they clarify a non-obvious "why" (architecture invariants excepted).
+
 ## Commands
 
 | Task | Command |
@@ -36,3 +58,6 @@ Guidance for OpenCode agents working in this repository.
 | Run a single test | `uv run pytest tests/test_foo.py::test_name` |
 | Add dependency | `uv add <pkg>` |
 | Add dev dependency | `uv add --dev <pkg>` |
+| Backend dev server | `uv run uvicorn app.main:app --reload` |
+| Frontend dev server | `cd frontend; npm run dev` |
+| Frontend typecheck+build | `cd frontend; npm run build` |

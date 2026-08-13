@@ -17,18 +17,19 @@
 | [requirements-analysis.md](./requirements-analysis.md) | 需求分析 | 完整方案设计主文档 |
 | [feasibility-analysis.md](./feasibility-analysis.md) | 可行性 | 技术/市场/工程三维评估 |
 | [market-research.md](./market-research.md) | 市场调研 | 同类产品实证对标 |
+| [data-model-detail.md](./data-model-detail.md) | 数据模型 | 字段级设计 + 索引（阶段 0/1 落定） |
+| [api-design.md](./api-design.md) | API 设计 | 端点清单 + 响应格式 + 错误码（阶段 0/1 已实现部分） |
+| [deployment.md](./deployment.md) | 部署 | 单机启动 + .env 配置清单（阶段 0/1） |
 
 ### 待补文档（到对应阶段自动提示，见 smart notes）
 
-- 数据模型字段级 + 索引 — 阶段 0 建表时
-- API 设计草案 + 错误码 — 阶段 0-1 间
-- 测试策略 — 阶段 0 末
-- 编码规范（并入 AGENTS.md）— 阶段 0 起
-- 部署文档（单机）— 阶段 0 末
+- 测试策略 — 阶段 0 末（待 tests/ 出现 test_*.py）
 - 画布交互细节 — 阶段 2
 - AI 自愈 Prompt 设计 — 阶段 3.5
 - Locust 细化 — 阶段 4
 - 录制导入细化 — 阶段 5
+
+> 编码规范已并入 AGENTS.md「Coding conventions」章节；字段级数据模型 / API 设计 / 部署文档已随阶段 0/1 补全。
 
 ---
 
